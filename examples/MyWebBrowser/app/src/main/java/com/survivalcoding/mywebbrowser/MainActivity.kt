@@ -55,4 +55,42 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main, menu)
         return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {                                    // 1
+            R.id.action_google, R.id.action_home -> {           // 2
+                binding.webView.loadUrl("https://www.google.com")
+                return true
+            }
+            R.id.action_naver -> {                              // 3
+                binding.webView.loadUrl("https://www.naver.com")
+                return true
+            }
+            R.id.action_daum -> {                               // 4
+                binding.webView.loadUrl("https://www.daum.net")
+                return true
+            }
+            R.id.action_call -> {                               // 5
+                val intent = Intent(Intent.ACTION_DIAL)
+                intent.data = Uri.parse("tel:031-123-4567")
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                }
+                return true
+            }
+            R.id.action_send_text -> {                          // 6
+                binding.webView.url?.let { url ->
+                    // 문자 보내개
+                }
+                return true
+            }
+            R.id.action_email -> {                              // 7
+                binding.webView.url?.let { url ->
+                    // 이메일 보내기
+                }
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)                // 8
+    }
 }
