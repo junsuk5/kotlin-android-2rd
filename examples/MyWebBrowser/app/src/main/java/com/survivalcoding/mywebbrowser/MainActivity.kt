@@ -1,6 +1,7 @@
 package com.survivalcoding.mywebbrowser
 
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.appcompat.app.AppCompatActivity
@@ -26,5 +27,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.webView.loadUrl("https://www.google.com")
+
+        binding.urlEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                binding.webView.loadUrl(binding.urlEditText.text.toString())
+                true
+            } else {
+                false
+            }
+        }
     }
 }
