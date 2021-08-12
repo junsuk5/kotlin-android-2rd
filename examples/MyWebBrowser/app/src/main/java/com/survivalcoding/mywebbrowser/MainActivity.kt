@@ -3,8 +3,10 @@ package com.survivalcoding.mywebbrowser
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -40,6 +42,9 @@ class MainActivity : AppCompatActivity() {
                 false
             }
         }
+
+        // 컨텍스트 메뉴 등록
+        registerForContextMenu(binding.webView)
     }
 
     override fun onBackPressed() {
@@ -57,20 +62,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {                                    // 1
-            R.id.action_google, R.id.action_home -> {           // 2
+        when (item.itemId) {
+            R.id.action_google, R.id.action_home -> {
                 binding.webView.loadUrl("https://www.google.com")
                 return true
             }
-            R.id.action_naver -> {                              // 3
+            R.id.action_naver -> {
                 binding.webView.loadUrl("https://www.naver.com")
                 return true
             }
-            R.id.action_daum -> {                               // 4
+            R.id.action_daum -> {
                 binding.webView.loadUrl("https://www.daum.net")
                 return true
             }
-            R.id.action_call -> {                               // 5
+            R.id.action_call -> {
                 val intent = Intent(Intent.ACTION_DIAL)
                 intent.data = Uri.parse("tel:031-123-4567")
                 if (intent.resolveActivity(packageManager) != null) {
@@ -78,19 +83,50 @@ class MainActivity : AppCompatActivity() {
                 }
                 return true
             }
-            R.id.action_send_text -> {                          // 6
+            R.id.action_send_text -> {
                 binding.webView.url?.let { url ->
-                    // 문자 보내개
+                    // 문자 보내기
+                    sendSMS("031-123-4567", url)
                 }
                 return true
             }
-            R.id.action_email -> {                              // 7
+            R.id.action_email -> {
                 binding.webView.url?.let { url ->
                     // 이메일 보내기
+                    email("test@example.com", "좋은 사이트", url)
                 }
                 return true
             }
         }
-        return super.onOptionsItemSelected(item)                // 8
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu?,
+        v: View?,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.context, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_share -> {
+                binding.webView.url?.let { url ->
+                    // 페이지 공유
+                    share(url)
+                }
+                return true
+            }
+            R.id.action_browser -> {
+                binding.webView.url?.let { url ->
+                    // 기본 웹 브라우저에서 열기
+                    browse(url)
+                }
+                return true
+            }
+        }
+        return super.onContextItemSelected(item)
     }
 }
