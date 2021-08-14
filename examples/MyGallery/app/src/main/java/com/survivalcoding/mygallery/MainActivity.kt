@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getAllPhotos() {
-        val uris = mutableListOf<Uri>()     // ⑥
+        val uris = mutableListOf<Uri>()
 
         // 모든 사진 정보 가져오기
         contentResolver.query(
@@ -63,21 +63,27 @@ class MainActivity : AppCompatActivity() {
             null,
             null,
             "${MediaStore.Images.ImageColumns.DATE_TAKEN} DESC" // 찍은 날짜 내림차순
-        )?.use { cursor ->                      // ⑦
-            while (cursor.moveToNext()) {       // ⑧
-                // ⑨ 사진 정보 id
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                // 사진 정보 id
                 val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                // ⑩ Uri 얻기
+                // Uri 얻기
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
 
-                // ⑪ 사진의 Uri들 리스트에 담기
+                // 사진의 Uri들 리스트에 담기
                 uris.add(contentUri)
             }
         }
 
         Log.d("MainActivity", "getAllPhotos: $uris")
+
+        // ViewPager2 어댑터 연결
+        val adapter = MyPagerAdapter(supportFragmentManager, lifecycle)
+        adapter.uris = uris
+
+        binding.viewPager.adapter = adapter
     }
 }
