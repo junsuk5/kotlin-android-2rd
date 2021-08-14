@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -17,12 +18,14 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    val requestPermissionLauncher =
+    // ③ 권한 요청에 대한 처리를 하는 객체
+    private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                fetchPhotos()
+                // ④ 권한이 허락됨
+                getAllPhotos()
             } else {
-                Log.d("MainActivity", "권한 요청 안 됨")
+                Toast.makeText(this, "권한이 거부되었습니다", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -30,16 +33,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        when {
+        // ① 현재 권한을 체크함
+        when (
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                fetchPhotos()
+            )
+        ) {
+            PackageManager.PERMISSION_GRANTED -> {
+                // ⑤ 권한이 허락됨
+                getAllPhotos()
             }
             else -> {
-                // You can directly ask for the permission.
-                // The registered ActivityResultCallback gets the result of this request.
+                // ② 권한 요청
                 requestPermissionLauncher.launch(
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
@@ -47,8 +53,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchPhotos(): List<Uri> {
-        val uris = mutableListOf<Uri>()
+    private fun getAllPhotos() {
+        val uris = mutableListOf<Uri>()     // ⑥
 
         // 모든 사진 정보 가져오기
         contentResolver.query(
@@ -57,22 +63,21 @@ class MainActivity : AppCompatActivity() {
             null,
             null,
             "${MediaStore.Images.ImageColumns.DATE_TAKEN} DESC" // 찍은 날짜 내림차순
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-
+        )?.use { cursor ->                      // ⑦
+            while (cursor.moveToNext()) {       // ⑧
+                // ⑨ 사진 정보 id
+                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                // ⑩ Uri 얻기
                 val contentUri = ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     id
                 )
 
+                // ⑪ 사진의 Uri들 리스트에 담기
                 uris.add(contentUri)
             }
         }
 
-        Log.d("MainActivity", "fetchPhotos: $uris")
-        return uris
+        Log.d("MainActivity", "getAllPhotos: $uris")
     }
 }
