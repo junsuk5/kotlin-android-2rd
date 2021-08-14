@@ -7,22 +7,27 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.survivalcoding.mygallery.databinding.ActivityMainBinding
+import kotlin.concurrent.timer
 
 class MainActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    val requestPermissionLauncher =
+    // 권한 체크용
+    private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                fetchPhotos()
+                // 권한이 허락되면
+                getAllPhotos()
             } else {
-                Log.d("MainActivity", "권한 요청 안 됨")
+                // 권한이 거부되면
+                Toast.makeText(this, "권한이 거부되었음", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -31,15 +36,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         when {
+            // 권한이 허락되었다면
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED -> {
-                fetchPhotos()
+                getAllPhotos()
             }
             else -> {
-                // You can directly ask for the permission.
-                // The registered ActivityResultCallback gets the result of this request.
+                // 권한 요청
                 requestPermissionLauncher.launch(
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
@@ -47,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchPhotos(): List<Uri> {
+    private fun getAllPhotos() {
         val uris = mutableListOf<Uri>()
 
         // 모든 사진 정보 가져오기
@@ -73,6 +78,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         Log.d("MainActivity", "fetchPhotos: $uris")
-        return uris
+
+        // ViewPager2 어댑터 연결
+        val adapter = MyPagerAdapter(supportFragmentManager, lifecycle)
+        adapter.uris = uris
+
+        binding.photoPager.adapter = adapter
+
+        // 3초마다 자동 슬라이드
+        timer(period = 3000) {
+            runOnUiThread {
+                with(binding) {
+                    if (photoPager.currentItem < adapter.itemCount - 1) {
+                        photoPager.currentItem = photoPager.currentItem + 1
+                    } else {
+                        photoPager.currentItem = 0
+                    }
+                }
+            }
+        }
     }
 }
