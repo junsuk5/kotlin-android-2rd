@@ -1,5 +1,6 @@
 package com.survivalcoding.flashlight
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.survivalcoding.flashlight.databinding.ActivityMainBinding
@@ -13,13 +14,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        val torch = Torch(this)
-
         binding.flashSwitch.setOnFocusChangeListener { _, isChecked ->
             if (isChecked) {
-                torch.flashOn()
+                startService(Intent(this, TorchService::class.java).apply {
+                    action = "on"
+                })
             } else {
-                torch.flashOff()
+                startService(Intent(this, TorchService::class.java).apply {
+                    action = "off"
+                })
             }
         }
     }
