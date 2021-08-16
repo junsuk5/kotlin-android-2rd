@@ -1,15 +1,11 @@
 package com.survivalcoding.mygallery
 
-import android.Manifest
+import android.app.Application
 import android.content.ContentUris
-import android.content.pm.PackageManager
-import android.net.Uri
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import com.survivalcoding.mygallery.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -17,39 +13,14 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                fetchPhotos()
-            } else {
-                Log.d("MainActivity", "권한 요청 안 됨")
-            }
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                fetchPhotos()
-            }
-            else -> {
-                // You can directly ask for the permission.
-                // The registered ActivityResultCallback gets the result of this request.
-                requestPermissionLauncher.launch(
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                )
-            }
-        }
+        getAllPhotos()
     }
 
-    private fun fetchPhotos(): List<Uri> {
-        val uris = mutableListOf<Uri>()
-
+    private fun getAllPhotos() {
         // 모든 사진 정보 가져오기
         contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -68,11 +39,9 @@ class MainActivity : AppCompatActivity() {
                     id
                 )
 
-                uris.add(contentUri)
+                Log.d("MainActivity", "getAllPhotos: $contentUri")
+//                uris.add(contentUri)
             }
         }
-
-        Log.d("MainActivity", "fetchPhotos: $uris")
-        return uris
     }
 }
