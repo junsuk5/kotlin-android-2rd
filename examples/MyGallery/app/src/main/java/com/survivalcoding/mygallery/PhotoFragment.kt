@@ -3,11 +3,12 @@ package com.survivalcoding.mygallery
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.fragment.app.Fragment
 import coil.load
 
 private const val ARG_URI = "uri"
