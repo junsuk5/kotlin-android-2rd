@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -26,10 +27,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
 
+    // 위치 정보를 얻기위한 객체 ①
     private val fusedLocationProviderClient by lazy {
         FusedLocationProviderClient(this)
     }
 
+    // 위치 요청 정보 ②
     private val locationRequest by lazy {
         LocationRequest.create().apply {
             // GPS 우선
@@ -44,19 +47,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    // 위치 정보를 얻으면 해야할 행동이 정의된 콜백 객체 ③
     private val locationCallback = MyLocationCallBack()
 
-    @SuppressLint("MissingPermission")
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                // 권한이 허락됨
-                fusedLocationProviderClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    null
-                )
+                // 권한이 허락됨 ①
+                addLocationListener()
             } else {
+                // 권한 거부 ②
                 Toast.makeText(this, "권한이 거부되었습니다", Toast.LENGTH_SHORT).show()
             }
         }
@@ -71,18 +71,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-
-//        addLocationListener()   // ④
-//        checkPermission(
-//            cancel = {
-//                // 위치 정보가 필요한 이유 다이얼로그 표시
-//                showPermissionInfoDialog()
-//            },
-//            ok = {
-//                // 현재 위치를 주기적으로 요청 (권한이 필요한 부분)
-//                addLocationListener()
-//            }
-//        )
     }
 
     override fun onPause() {
@@ -97,13 +85,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
 
+        // 권한 요청 ⑨
         checkPermission(
             cancel = {
-                // 위치 정보가 필요한 이유 다이얼로그 표시
+                // 위치 정보가 필요한 이유 다이얼로그 표시 ⑩
                 showPermissionInfoDialog()
             },
             ok = {
-                // 현재 위치를 주기적으로 요청 (권한이 필요한 부분)
+                // 현재 위치를 주기적으로 요청 (권한이 필요한 부분) ⑪
                 addLocationListener()
             }
         )
@@ -119,40 +108,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
-    private fun checkPermission(cancel: () -> Unit, ok: () -> Unit) {
-        // 위치 권한이 없다면 ①
+    private fun checkPermission(cancel: () -> Unit, ok: () -> Unit) {   // ①
+        // 위치 권한이 없는지 검사
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // 이전에 권한을 한 번 거부한 적인 있는 경우 ②
+            // 권한이 허용되지 않음
             if (ActivityCompat.shouldShowRequestPermissionRationale(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
             ) {
-                cancel()
+                // 이전에 권한을 한 번 거부한 적인 있는 경우
+                cancel()    // ②
             } else {
-                // 이전에 권한 거부를 한 적이 없을 때
+                // 권한 요청
                 requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
             return
         }
-        ok()
+        // 권한을 수락했을 때 실행할 함수
+        ok()    // ③
     }
 
     private fun showPermissionInfoDialog() {
-        // 다이얼로그에 권한이 필요한 이유를 설명 ③
-        AlertDialog.Builder(this).apply {
+        // 다이얼로그에 권한이 필요한 이유를 설명
+        AlertDialog.Builder(this).apply {   // ④
             title = "권한이 필요한 이유"
             setMessage("지도에 위치를 표시하려면 위치 정보 권한이 필요합니다.")
-            setPositiveButton("권한 요청") { _, _ ->
+            setPositiveButton("권한 요청") { _, _ ->    // ⑤
                 // 권한 요청
-                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)  // ⑥
             }
-            setNegativeButton("거부", null)
-        }.show()
+            setNegativeButton("거부", null)   // ⑦
+        }.show()    // ⑧
     }
 
     /**
@@ -181,11 +172,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             val location = locationResult?.lastLocation
 
-            // ⑥
+            // ⑦
             location?.run {
                 // 17 level로 확대하며 현재 위치로 카메라 이동
                 val latLng = LatLng(latitude, longitude)
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 17f))
+
+                Log.d("MapsActivity", "위도: $latitude, 경도: $longitude") // ①
             }
 
         }
