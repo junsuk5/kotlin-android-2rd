@@ -146,7 +146,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun showPermissionInfoDialog() {
         // 다이얼로그에 권한이 필요한 이유를 설명
         AlertDialog.Builder(this).apply {   // ④
-            title = "권한이 필요한 이유"
+            setTitle("권한이 필요한 이유")
             setMessage("지도에 위치를 표시하려면 위치 정보 권한이 필요합니다.")
             setPositiveButton("권한 요청") { _, _ ->    // ⑤
                 // 권한 요청

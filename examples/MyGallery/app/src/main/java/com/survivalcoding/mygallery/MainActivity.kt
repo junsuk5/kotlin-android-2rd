@@ -9,8 +9,9 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.core.app.ActivityCompat
 import com.survivalcoding.mygallery.databinding.ActivityMainBinding
 import kotlin.concurrent.timer
 
@@ -34,24 +35,37 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // ① 현재 권한을 체크함
-        when (
-            ContextCompat.checkSelfPermission(
+        // 권한이 부여되었는지 확인 ①
+        if (
+            ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.READ_EXTERNAL_STORAGE
-            )
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
-            PackageManager.PERMISSION_GRANTED -> {
-                // ⑤ 권한이 허락됨
-                getAllPhotos()
-            }
-            else -> {
-                // ② 권한 요청
-                requestPermissionLauncher.launch(
+            // 이전에 권한이 허용되지 않음 ②
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 )
+            ) {
+                // 이전에 이미 권한이 거부되었을 때 설명 ③
+                AlertDialog.Builder(this).apply {
+                    setTitle("권한이 필요한 이유")
+                    setMessage("사진 정보를 얻으려면 외부 저장소 권한이 필요합니다.")
+                    setPositiveButton("권한 요청") { _, _ ->
+                        // 권한 요청
+                        requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)  // ⑥
+                    }
+                    setNegativeButton("거부", null)
+                }.show()    // ⑧
+            } else {
+                // 권한 요청 ④
+                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
+            return
         }
+        // 권한이 이미 허용됨 ⑤
+        getAllPhotos()
     }
 
     private fun getAllPhotos() {
