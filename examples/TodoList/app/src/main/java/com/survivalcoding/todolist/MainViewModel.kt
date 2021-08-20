@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.util.*
 
 // AndroidViewModel은 액티비티와 수명을 같이한다 ①
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -44,12 +45,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateTodo(id: Long, text: String) {
+        _items.value
+            .find { todo -> todo.id == id }     // ①
+            ?.let { todo ->                     // ②
+                todo.apply {                    // ③
+                    title = text
+                    date = Calendar.getInstance().timeInMillis
+                }
+
+                // ④
+                viewModelScope.launch {
+                    db.todoDao().update(todo)
+                }
+            }
+    }
+
     // ⑨
     fun deleteTodo(id: Long) {
-        _items.value.find { todo -> todo.id == id }?.let { todo ->  // ⑩
-            viewModelScope.launch {
-                db.todoDao().delete(todo)
+        _items.value
+            .find { todo -> todo.id == id }
+            ?.let { todo ->  // ⑩
+                viewModelScope.launch {
+                    db.todoDao().delete(todo)
+                }
             }
-        }
     }
 }
