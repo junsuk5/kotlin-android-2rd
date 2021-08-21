@@ -2,12 +2,11 @@ package com.survivalcoding.todolist
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -50,7 +49,10 @@ class SecondFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.doneFab.setOnClickListener {
-            viewModel.addTodo("test")
+            if (binding.todoEditText.text.toString().isNotEmpty()) {
+                viewModel.addTodo(binding.todoEditText.text.toString())
+                findNavController().popBackStack()
+            }
         }
     }
 
