@@ -24,6 +24,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _items = MutableStateFlow<List<Todo>>(emptyList())
     val items: StateFlow<List<Todo>> = _items
 
+    var selectedTodo: Todo? = null
+
     // 초기화시 모든 데이터를 읽어 옴 ④
     init {
         // ⑤
@@ -45,20 +47,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updateTodo(id: Long, text: String) {
-        _items.value
-            .find { todo -> todo.id == id }     // ①
-            ?.let { todo ->                     // ②
-                todo.apply {                    // ③
-                    title = text
-                    date = Calendar.getInstance().timeInMillis
-                }
-
-                // ④
-                viewModelScope.launch {
-                    db.todoDao().update(todo)
-                }
+    fun updateTodo(text: String) {
+        selectedTodo?.let { todo ->
+            todo.apply {                    // ③
+                title = text
+                date = Calendar.getInstance().timeInMillis
             }
+
+            viewModelScope.launch {
+                db.todoDao().update(todo)
+            }
+            selectedTodo = null
+        }
     }
 
     // ⑨

@@ -47,6 +47,8 @@ class FirstFragment : Fragment() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         val todoListAdapter = TodoListAdapter { todo ->
             // 클릭시 처리
+            viewModel.selectedTodo = todo
+            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
         binding.recyclerView.adapter = todoListAdapter
 
