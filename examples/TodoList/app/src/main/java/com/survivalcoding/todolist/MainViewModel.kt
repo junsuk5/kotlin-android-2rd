@@ -69,6 +69,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 viewModelScope.launch {
                     db.todoDao().delete(todo)
                 }
+                selectedTodo = null
             }
     }
 }

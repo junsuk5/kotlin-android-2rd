@@ -49,6 +49,16 @@ class SecondFragment : Fragment() {
                 findNavController().popBackStack()
             }
         }
+
+        binding.deleteFab.setOnClickListener {
+            viewModel.deleteTodo(viewModel.selectedTodo!!.id)
+            findNavController().popBackStack()
+        }
+
+        // 선택된 할 일이 없을 때는 지우기 버튼 감추기
+        if (viewModel.selectedTodo == null) {
+            binding.deleteFab.visibility = View.GONE
+        }
     }
 
     override fun onDestroyView() {
